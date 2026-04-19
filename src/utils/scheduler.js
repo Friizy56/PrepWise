@@ -1,3 +1,5 @@
+import { getWeakTopic } from "./analytics";
+
 export const generateStudyPlan = (tasks = []) => {
     if (tasks.length === 0) {
         return [
@@ -22,7 +24,7 @@ export const generateStudyPlan = (tasks = []) => {
         ([, a], [, b]) => a.total - b.total
     );
 
-    const weakTopic = sortedTopics[0]?.[0] || "General DSA";
+    const weakTopic = getWeakTopic(tasks);
     const strongTopic = sortedTopics[sortedTopics.length - 1]?.[0] || "General DSA";
 
     const difficultyCounts = tasks.reduce(
@@ -82,7 +84,7 @@ export const generateLeetCodeSuggestions = (stats = {}, tasks = []) => {
     }, {});
 
     const sortedTopics = Object.entries(topicStats).sort(([, a], [, b]) => a - b);
-    const weakTopic = sortedTopics[0]?.[0] || "array and string";
+    const weakTopic = getWeakTopic(tasks);
     const weakTopicLink = leetCodeTopicLink(weakTopic);
 
     if (total === 0) {

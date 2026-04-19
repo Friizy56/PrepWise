@@ -3,6 +3,7 @@ import LeetCodeStats from "../components/LeetCodeStats";
 import useTasks from "../hooks/useTasks";
 import useStreak from "../hooks/useStreak";
 import useStudyPlan from "../hooks/useStudyPlan";
+import { getTopicDistribution, getWeakTopic } from "../utils/analytics";
 
 export default function Dashboard() {
     const { tasks } = useTasks();
@@ -31,11 +32,8 @@ export default function Dashboard() {
         return map;
     }, [tasks]);
 
-    // ⚠️ Weak topic (least practiced)
-    const weakTopic = useMemo(() => {
-        if (Object.keys(topicCount).length === 0) return "None";
-        return Object.entries(topicCount).sort((a, b) => a[1] - b[1])[0][0];
-    }, [topicCount]);
+    // ⚠️ Weak topic (improved algorithm considering recency, difficulty, and practice count)
+    const weakTopic = useMemo(() => getWeakTopic(tasks), [tasks]);
 
     const streak = useStreak(tasks);
 
