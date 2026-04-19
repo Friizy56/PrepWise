@@ -47,15 +47,20 @@ cd PrepWise
 npm install
 ```
 
-3. Add Firebase config in `src/services/firebase.js` if not already configured.
+3. Set up environment variables:
 
-4. Start the development server:
+   - Copy `.env.example` to `.env`
+   - Fill in your Firebase configuration values in `.env`
+
+4. Add Firebase config in `src/services/firebase.js` if not already configured.
+
+5. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-5. Open the app in your browser at the URL shown by Vite.
+6. Open the app in your browser at the URL shown by Vite.
 
 ## Scripts
 
