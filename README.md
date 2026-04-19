@@ -70,3 +70,14 @@ The project uses Firebase for authentication and Firestore data storage. Confirm
 
 - Authentication
 - Firestore Database
+
+## Deployment
+
+### Vercel
+
+1. Push the repository to GitHub.
+2. Connect the repo to Vercel.
+3. Use:
+   - Build command: `npm run build`
+   - Output directory: `dist`
+
