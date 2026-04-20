@@ -13,8 +13,12 @@ const Signup = lazy(() => import("./pages/Signup"));
 
 // Loading component
 const LoadingSpinner = () => (
-    <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950">
+        <div className="relative w-16 h-16">
+            <div className="absolute inset-0 rounded-full border-4 border-indigo-600/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+        </div>
+        <p className="mt-4 text-slate-400 font-medium animate-pulse">Preparing your workspace...</p>
     </div>
 );
 

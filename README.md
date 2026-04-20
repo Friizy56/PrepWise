@@ -76,6 +76,5 @@ The project uses Firebase for authentication and Firestore data storage. Confirm
 - Authentication
 - Firestore Database
 
-## Deployment
 
 

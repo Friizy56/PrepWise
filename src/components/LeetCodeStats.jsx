@@ -10,11 +10,15 @@ import {
     Tooltip,
     ResponsiveContainer,
     Legend,
+    Cell,
 } from "recharts";
 import { useAuth } from "../context/AuthContext";
 import { saveLeetCodeStats, getLeetCodeStatsHistory } from "../services/leetcodeService";
 import useTasks from "../hooks/useTasks";
 import useLeetCodeSuggestions from "../hooks/useLeetCodeSuggestions";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Card, CardContent } from "./ui/Card";
 
 export default function LeetCodeStats() {
     const { user } = useAuth();
@@ -63,7 +67,6 @@ export default function LeetCodeStats() {
                 hardSolved: result.hardSolved || 0,
             };
 
-            // ❌ If API returns empty or invalid
             if (
                 parsedData.totalSolved === 0 &&
                 parsedData.easySolved === 0 &&
@@ -74,10 +77,7 @@ export default function LeetCodeStats() {
             }
 
             setData(parsedData);
-
-            // Save to Firestore
             await saveLeetCodeStats(user.uid, parsedData);
-            // Reload history to include the new data
             await loadHistory();
         } catch {
             setError("Invalid username or API failed");
@@ -115,96 +115,123 @@ export default function LeetCodeStats() {
     const suggestions = useLeetCodeSuggestions(data, tasks);
 
     return (
-        <div className="bg-white p-5 rounded-xl shadow mt-6">
-            <h2 className="text-lg font-semibold mb-4">LeetCode Stats</h2>
-
-            {/* Input */}
-            <div className="flex gap-2 mb-4">
-                <input
+        <div className="space-y-6">
+            {/* Input Section */}
+            <div className="flex gap-2">
+                <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Enter LeetCode username"
-                    className="border p-2 flex-1"
+                    className="flex-1"
                 />
-
-                <button
+                <Button
                     onClick={fetchStats}
-                    className="bg-green-500 text-white px-4 rounded"
-                    disabled={!user}
+                    disabled={!user || loading}
+                    className="bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/10"
                 >
-                    Fetch
-                </button>
+                    {loading ? "..." : "Fetch"}
+                </Button>
             </div>
 
             {/* States */}
-            {loading && <p className="text-blue-500">Loading...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="text-rose-500 text-xs px-1">{error}</p>}
 
-            {/* Current Data */}
-            {data && (
-                <div className="space-y-1 mb-4">
-                    <p>Total Solved: {data.totalSolved}</p>
-                    <p>Easy: {data.easySolved}</p>
-                    <p>Medium: {data.mediumSolved}</p>
-                    <p>Hard: {data.hardSolved}</p>
+            {/* Content Grids */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Solved Stats */}
+                {data && (
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Solved</p>
+                            <p className="text-2xl font-bold text-white">{data.totalSolved}</p>
+                        </div>
+                        <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
+                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Easy</p>
+                            <p className="text-2xl font-bold text-slate-100">{data.easySolved}</p>
+                        </div>
+                        <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
+                            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1">Medium</p>
+                            <p className="text-2xl font-bold text-slate-100">{data.mediumSolved}</p>
+                        </div>
+                        <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
+                            <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">Hard</p>
+                            <p className="text-2xl font-bold text-slate-100">{data.hardSolved}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Suggestions */}
+                {data && suggestions.length > 0 && (
+                    <div className="p-5 bg-indigo-600/5 border border-indigo-500/10 rounded-2xl">
+                        <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4">Suggested Topics</h3>
+                        <ul className="space-y-3">
+                            {suggestions.map((item, index) => (
+                                <li key={index} className="flex items-center justify-between group">
+                                    <span className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors">• {item.text}</span>
+                                    {item.link && (
+                                        <a href={item.link} target="_blank" rel="noreferrer" className="p-1 px-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-[10px] font-bold text-slate-300 transition-colors">
+                                            Practice
+                                        </a>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+
+            {/* Charts Section */}
+            {(difficultyData.length > 0 || chartData.length > 0) && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                    {/* Difficulty Breakdown */}
+                    {difficultyData.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Difficulty Breakdown</h3>
+                            <div className="h-[200px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={difficultyData} margin={{ top: 10, right: 10, left: -30, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                        <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#f1f5f9', fontSize: '12px' }}
+                                        />
+                                        <Bar dataKey="value" name="Solved" radius={[4, 4, 0, 0]} barSize={32}>
+                                            <Cell fill="#10b981" />
+                                            <Cell fill="#f59e0b" />
+                                            <Cell fill="#f43f5e" />
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Trend Chart */}
+                    {chartData.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Progress Trend</h3>
+                            <div className="h-[200px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: -30, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                        <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#f1f5f9', fontSize: '12px' }}
+                                        />
+                                        <Line type="monotone" dataKey="totalSolved" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#6366f1', strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Difficulty Breakdown */}
-            {difficultyData.length > 0 && (
-                <div className="mt-6">
-                    <h3 className="text-md font-semibold mb-2">Difficulty Breakdown</h3>
-                    <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={difficultyData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis allowDecimals={false} />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="value" name="Solved" fill="#4ade80" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            )}
-
-            {/* Trend Chart */}
-            {chartData.length > 0 ? (
-                <div className="mt-6">
-                    <h3 className="text-md font-semibold mb-2">Progress Trend</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis allowDecimals={false} />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="totalSolved" stroke="#8884d8" strokeWidth={2} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            ) : (
-                <p className="text-sm text-gray-500 mt-4">Fetch stats once to populate your LeetCode progress graph.</p>
-            )}
-
-            {data && suggestions.length > 0 && (
-                <div className="mt-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <h3 className="text-md font-semibold mb-3">Suggested LeetCode Problems</h3>
-                    <ul className="space-y-2 text-gray-700">
-                        {suggestions.map((item, index) => (
-                            <li key={index} className="leading-6">
-                                • {item.text}
-                                {item.link && (
-                                    <a
-                                        href={item.link}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="ml-2 text-blue-600 underline"
-                                    >
-                                        Open topic
-                                    </a>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+            {!data && chartData.length === 0 && (
+                <div className="p-8 text-center border-2 border-dashed border-slate-800 rounded-3xl">
+                    <p className="text-sm text-slate-500">Fetch stats once to populate your LeetCode progress graph.</p>
                 </div>
             )}
         </div>
